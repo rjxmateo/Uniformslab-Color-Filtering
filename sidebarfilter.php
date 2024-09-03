@@ -242,11 +242,15 @@ if (!empty($colors_in_category)) {
 
     // Display only the parent colors initially
     foreach ($colors_grouped_by_parent as $parent_color => $child_colors) {
+        // Generate a swatch for the parent color (assuming you have a function or method to get this)
+        $parent_swatch_html = apply_filters('woocommerce_color_swatch_html', '', (object)['name' => $parent_color]);
+
         ?>
         <li class="list-group-item border-0 p-0 mx-4 mb-2 color-item">
             <!-- Trigger modal to show child colors -->
             <a href="#" class="d-flex align-items-center gap-6 list-group-item-action text-dark px-3 py-6 rounded-1"
                onclick="showModal('<?php echo esc_attr(strtolower($parent_color)); ?>')">
+                <span class="color-swatch" style="background-color: <?php echo esc_attr($parent_color); ?>;"></span>
                 <span class="color-name"><?php echo esc_html($parent_color); ?></span>
             </a>
         </li>
@@ -280,11 +284,9 @@ if (!empty($colors_in_category)) {
     <?php endif; ?>
 </ul>
 
-  
 <?php
 }
 ?>
-
     <script>
         // Show More Button for Colors
         const colorBatchSize = <?php echo $batch_size; ?>;
@@ -353,6 +355,14 @@ if (!empty($colors_in_category)) {
     cursor: pointer;
 }
 
+.color-swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 10px;
+    border: 1px solid #ddd;
+}
 
 
 </style>
