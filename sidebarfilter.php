@@ -319,26 +319,31 @@ if (!empty($colors_in_category)) {
 
 
 
-#Modal for the color swatch
+
+
+
 <style>
+/*
+Modal for the color swatch
+*/ 
 
 .custom-modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
+    display: none; 
+    position: fixed; 
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Black background with opacity */
-    z-index: 1000; /* Sit on top */
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000; 
 }
 
 .custom-modal-content {
     background-color: #fff;
-    margin: 15% auto; /* 15% from the top and centered */
+    margin: 15% auto;
     padding: 20px;
     border: 1px solid #888;
-    width: 80%; /* Could be more or less, depending on screen size */
+    width: 80%; 
 }
 
 .close {
@@ -367,9 +372,12 @@ if (!empty($colors_in_category)) {
 
 </style>
 
-#Js for color swatch
 
 <script>
+/*
+Js for color swatch
+*/ 
+
 function showModal(modalId) {
     var modal = document.getElementById('modal-' + modalId);
     if (modal) {
