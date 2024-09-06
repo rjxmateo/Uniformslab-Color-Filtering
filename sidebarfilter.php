@@ -7,8 +7,13 @@
     ?>
 
     <li class="list-group-item border-0 p-0 mx-4 mb-2">
-        <a href="<?php echo $shop_url; ?>" class="d-flex align-items-center gap-6 list-group-item-action text-dark px-3 py-6 rounded-1 <?php echo $is_active ? 'active' : ''; ?>"><i class="ti ti-circles fs-5"></i>All Products</a>
+        <a href="<?php echo $shop_url; ?>" class="d-flex align-items-center gap-6 list-group-item-action text-dark px-3 py-6 rounded-1 <?php echo $is_active ? 'active' : ''; ?>">
+            <i class="ti ti-circles fs-5"></i>
+            All Products
+        </a>
     </li>
+
+
     <!-- Filter by Category -->
     <ul class="list-group pt-2 border-bottom rounded-0" id="categoryList">
     <h6 class="my-3 mx-4 fw-semibold" id="filterTitle">Filter by Category</h6>
@@ -122,16 +127,6 @@
         </li>
     </ul>
 
-    <!-- By Gender -->
-    <!-- <div class="by-gender border-bottom rounded-0">
-        <h6 class="mt-4 mb-3 mx-4 fw-semibold" id="filterTitle">By Gender</h6>
-        <div class="pb-4 px-4">
-            <div class="form-check py-2 mb-0">
-                <input class="form-check-input" type="radio" name="gender" id="genderAll" value="all" <?php checked( 'all', get_query_var('gender') ); ?>>
-                <label class="form-check-label" for="genderAll">All</label>
-            </div>
-        </div>
-    </div> -->
 
     <!-- By Pricing -->
     <div class="by-price border-bottom rounded-0">
@@ -142,173 +137,83 @@
         
     </div>
 
-  
-<!-- By Colors -->
-    <ul class="list-group pt-2 border-bottom rounded-0" id="sortColor">
-        <h6 class="my-3 mx-4 fw-semibold" id="filterTitle">Filter by Color</h6>
-  	    <?php echo do_shortcode('[facetwp facet="colors"]'); ?>
-    </ul>
 
-    <div class="p-4">
-        <a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>" class="btn btn-primary w-100 text-white">Reset Filters</a>
-    </div>
-
-	<!-- By Colors -->
     <?php
-    $category_slug = get_query_var('product_cat');
-    $category = get_term_by('slug', $category_slug, 'product_cat');
-    $category_id = $category ? $category->term_id : 0;
-    $args = array(
-        'post_type' => 'product',
-        'posts_per_page' => -1,
-    );
+    // Define the path to your JSON file
+    $json_file_path = get_template_directory() . '/woocommerce/ulab_lookup_colors.json';
 
-    if ($category_id) {
-        $args['tax_query'] = array(
-            array(
-                'taxonomy' => 'product_cat',
-                'field' => 'term_id',
-                'terms' => $category_id,
-            ),
-        );
-    }
 
-    $products = get_posts($args);
+    // Read and decode the JSON file
+    $json_data = file_get_contents($json_file_path);
+    $colors_data = json_decode($json_data, true); // Decode JSON into an associative array
 
-    // Collect color terms associated with these products
-    $colors_in_category = array();
-    foreach ($products as $product) {
-        $product_colors = get_the_terms($product->ID, 'pa_brand-color');
-        if (!empty($product_colors) && !is_wp_error($product_colors)) {
-            foreach ($product_colors as $color) {
-                $colors_in_category[$color->term_id] = $color;
-            }
+    $parent_colors = [];
+
+    foreach ($colors_data as $color) {
+        $parent_color_name = $color['parentcolor_name'];
+        $child_color_name = $color['childcolor_name'];
+        $child_color_hex = $color['childcolor_hex'];
+
+        // Add child color details to the parent color mapping
+        if (!isset($parent_colors[$parent_color_name])) {
+            $parent_colors[$parent_color_name] = [];
         }
-    }
 
-    // Check if there are any color terms
-    if (!empty($colors_in_category)) {
-        $batch_size = 5;
-        $total_terms = count($colors_in_category);
-        $index = 0;
-        ?>
-
-    <h6 class="my-3 mx-4 fw-semibold" id="filterTitle">Filter by Color</h6>
-    <ul class="list-group pt-2 border-bottom rounded-0" id="sortColor">
-        <?php
-        $parent_colors = [
-            'Black' => ['Black'],
-            'Blue' => ['Blue', 'Light Blue', 'Navy'],
-            'Brown' => ['Brown'],
-            'Green' => ['Green'],
-            'Grey' => ['Grey', 'Aluminum Grey'],
-            'Maroon' => ['Maroon'],
-            'Natural' => ['Natural'],
-            'Orange' => ['Orange'],
-            'Pink' => ['Pink'],
-            'Purple' => ['Purple'],
-            'Red' => ['Red'],
-            'Teal' => ['Teal'],
-            'Turquoise' => ['Turquoise'],
-            'White' => ['White'],
-            'Yellow' => ['Yellow']
+        $parent_colors[$parent_color_name][$child_color_name] = [
+            'name' => $child_color_name,
+            'hex' => $child_color_hex,
+            'sku' => $color['childcolor_sku'],
+            'swatch_filename' => $color['swatch_filename']
         ];
+    }
 
-        $colors_grouped_by_parent = [];
+    ?>
 
-        // Group the colors by parent
-        foreach ($colors_in_category as $term) {
-            $found_parent = false;
-            foreach ($parent_colors as $parent_color => $children) {
-                if (in_array($term->name, $children)) {
-                    $colors_grouped_by_parent[$parent_color][] = $term;
-                    $found_parent = true;
-                    break;
-                }
-            }
-            if (!$found_parent) {
-                $colors_grouped_by_parent['Others'][] = $term;
-            }
-        }
-
-        foreach ($colors_grouped_by_parent as $parent_color => $child_colors) {
-            $parent_swatch_html = apply_filters('woocommerce_color_swatch_html', '', (object)['name' => $parent_color]);
-
-            ?>
+    <ul class="list-group pt-2 border-bottom rounded-0" id="sortColor">
+        <?php foreach ($parent_colors as $parent_color => $details): ?>
             <li class="list-group-item border-0 p-0 mx-4 mb-2 color-item">
                 <!-- Trigger modal to show child colors -->
-                <a href="#" class="d-flex align-items-center gap-6 list-group-item-action text-dark px-3 py-6 rounded-1"
-                onclick="showModal('<?php echo esc_attr(strtolower($parent_color)); ?>')">
-                    <span class="color-swatch" style="background-color: <?php echo esc_attr($parent_color); ?>;"></span>
+                <div class="d-flex align-items-center gap-6 list-group-item-action text-dark px-3 py-6 rounded-1" 
+                    role="button" onclick="showModal('<?php echo esc_attr(strtolower($parent_color)); ?>')">
+                    <input 
+                        type="checkbox" 
+                        class="color-checkbox" 
+                        name="<?php echo esc_attr(strtolower($parent_color)); ?>"
+                        value="<?php echo esc_attr(strtolower($parent_color)); ?>"
+                        id="color-checkbox-<?php echo esc_attr(strtolower($parent_color)); ?>"
+                    >
+
+                    <span class="color-swatch" style="background-color: <?php echo esc_attr( $parent_color); ?>;"></span>
                     <span class="color-name"><?php echo esc_html($parent_color); ?></span>
-                </a>
+                </div>
             </li>
 
             <!-- Modal for child colors under the parent color -->
             <div class="custom-modal" id="modal-<?php echo esc_attr(strtolower($parent_color)); ?>">
                 <div class="modal-content">
                     <span class="close" onclick="hideModal('<?php echo esc_attr(strtolower($parent_color)); ?>')">&times;</span>
-                    <div class=" color-grid">
-                        <?php foreach ($child_colors as $child_color) {
-                            $current_url = home_url(add_query_arg(array()));
-                            $filtered_url = add_query_arg('filter_color', $child_color->slug, $current_url);
-
-
-                            $background_color = get_term_meta($child_color->term_id, 'product_attribute_color', true);
-                            if (!$background_color) {
-                                $background_color = '#000'; 
-                            }
-                            ?>
-
-                            <div class=" color-item">
-                                <a href="<?php echo esc_url($filtered_url); ?>" class="">
-                                    <input type="checkbox" class="color-checkbox" name="filter_color[]" value="<?php echo esc_attr($child_color->slug); ?>">
-                                    <span class="color-swatch" style="background-color: <?php echo esc_attr($background_color); ?>;"></span>
-                                    <span class="color-name"><?php echo esc_html($child_color->name); ?></span>
-                                </a>
+                    <div class="color-grid">
+                        <?php foreach ($details as $child_color): ?>
+                            <div class="color-item">
+                                <input 
+                                    type="checkbox" 
+                                    class="color-checkbox" 
+                                    name="filter_colors[]" 
+                                    value="<?php echo esc_attr($child_color['name']); ?>"
+                                >
+                                <span class="color-swatch" style="background-color: <?php echo esc_attr('#' . $child_color['hex']); ?>;"></span>
+                                <span class="color-name"><?php echo esc_html($child_color['name']); ?></span>
                             </div>
-                       
-                        <?php } ?>
+                        <?php endforeach; ?>
                     </div>
                 </div>
             </div>
-
-
-        <?php } ?>
-
-        <?php if ($total_terms > $batch_size) : ?>
-            <!-- <a id="showMoreColorBtn" class="underline mx-4 my-2 text-center cursor-pointer fs" role="button">Show More</a> -->
-        <?php endif; ?>
+        <?php endforeach; ?>
     </ul>
-
-    <?php
-    }
-    ?>
-    <!-- <script>
-        // Show More Button for Colors
-        const colorBatchSize = <?php echo $batch_size; ?>;
-        let currentColorBatch = 1;
-
-        document.getElementById('showMoreColorBtn').addEventListener('click', function () {
-            const colors = document.querySelectorAll('.color-item.d-none');
-            const end = currentColorBatch * colorBatchSize + colorBatchSize;
-
-            for (let i = 0; i < end && i <script colors.length; i++) {
-                colors[i].classList.remove('d-none');
-            }
- 
-            currentColorBatch++;
-
-            if (currentColorBatch * colorBatchSize >= colors.length) {
-                this.style.display = 'none';
-            }
-        });
-    </script> -->
-  
-
+        
 
     <div class="p-4">
-        <a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>" class="btn btn-primary w-100 text-white">Reset Filters</a>
+        <a href="<?php echo($shop_url); ?>" class="btn btn-primary w-100 text-white">Reset Filters</a>
     </div>
 
 
@@ -366,6 +271,7 @@ Modal for the color swatch
 }
 
 .color-swatch {
+    border-radius: 50%;
     width: 20px;
     height: 20px;
     display: inline-block;
@@ -441,11 +347,6 @@ window.onclick = function(event) {
     .d-flex-important {
         display: flex !important;
     }
-
-/* #sortColor{
-margin-left:24px;
-margin-right:24px
-} */
 	
 #sidebarfilter{
 max-width:300px
@@ -470,6 +371,7 @@ max-width:300px
 
 }
 </style>
+
 <script>
     function openSidebarFilter() {
     document.getElementById("sidebarfilter").style.left = "0";
@@ -627,22 +529,3 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 
-
-
-<script>
-
-   
-    // Function to apply the filter and update the URL
-    function applyFilter() {
-        const min = rangeMin.value;
-        const max = rangeMax.value;
-        const url = new URL(window.location.href);
-
-        url.searchParams.set('min_price', min);
-        url.searchParams.set('max_price', max);
-
-        window.location.href = url.toString();
-    }
-
-  
-</script>
