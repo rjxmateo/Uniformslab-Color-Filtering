@@ -6,6 +6,7 @@
  *
  * @package WordPress_Bootstrap_Starter_Theme
  */
+global $wpdb;
 
 if ( ! function_exists( 'wordpress_bootstrap_starter_theme_setup' ) ) :
 	/**
@@ -453,3 +454,56 @@ function enqueue_ajax_filter_scripts() {
     ));
 }
 add_action('wp_enqueue_scripts', 'enqueue_ajax_filter_scripts');
+
+
+function generate_ulab_lookup_colors_json() {
+    $host = getenv('DB_HOST');
+    $username = getenv('DB_USER');
+    $password = getenv('DB_PASSWORD');
+    $database = getenv('DB_NAME');
+    $port = 3306;
+ 
+    $conn = new mysqli($host, $username, $password, $database, $port);
+
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+
+    $query = "SELECT * FROM ulab_lookup_colors";
+    $result = $conn->query($query);
+
+    if ($result->num_rows > 0) {
+        $colors = [];
+
+        while ($row = $result->fetch_assoc()) {
+            $colors[] = $row;
+        }
+
+        $json_data = json_encode($colors);
+
+        $json_file_path = get_template_directory() . '/woocommerce/ulab_lookup_colors.json';
+
+        file_put_contents($json_file_path, $json_data);
+
+        $conn->close();
+    } else {
+        $conn->close();
+    }
+}
+
+
+function schedule_ulab_colors_update() {
+    if (!wp_next_scheduled('update_ulab_lookup_colors_json')) {
+        wp_schedule_event(time(), 'hourly', 'update_ulab_lookup_colors_json');
+    }
+}
+add_action('wp', 'schedule_ulab_colors_update');
+add_action('update_ulab_lookup_colors_json', 'generate_ulab_lookup_colors_json');
+
+// add_action('init', 'generate_ulab_lookup_colors_json');
+
+function replace_s3_with_cloudfront( $url ) {
+    // Replace the S3 bucket URL with the CloudFront URL
+    return str_replace( 'uniformslab.s3.amazonaws.com', 'd2czqbhdcyarjs.cloudfront.net', $url );
+}
+add_filter( 'wp_get_attachment_url', 'replace_s3_with_cloudfront' );
