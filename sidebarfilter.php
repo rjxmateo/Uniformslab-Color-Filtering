@@ -1,9 +1,9 @@
 <div id="sidebarfilter" class="shop-filters flex-shrink-0 border-end d-block py-4">
 
-    <?php 
-        $shop_url = esc_url( wc_get_page_permalink( 'shop' ) );
-        $current_url = home_url( add_query_arg( array(), $_SERVER['REQUEST_URI'] ) );
-        $is_active = strpos($current_url, $shop_url) === 0;
+    <?php
+    $shop_url = esc_url(wc_get_page_permalink('shop'));
+    $current_url = home_url(add_query_arg(array(), $_SERVER['REQUEST_URI']));
+    $is_active = strpos($current_url, $shop_url) === 0;
     ?>
 
     <li class="list-group-item border-0 p-0 mx-4 mb-2">
@@ -16,114 +16,116 @@
 
     <!-- Filter by Category -->
     <ul class="list-group pt-2 border-bottom rounded-0" id="categoryList">
-    <h6 class="my-3 mx-4 fw-semibold" id="filterTitle">Filter by Category</h6>
+        <h6 class="my-3 mx-4 fw-semibold" id="filterTitle">Filter by Category</h6>
 
-    <?php
-    $product_categories = get_terms(array(
-        'taxonomy' => 'product_cat',
-        'hide_empty' => false,
-    ));
+        <?php
+        $product_categories = get_terms(array(
+            'taxonomy' => 'product_cat',
+            'hide_empty' => false,
+        ));
 
-    $categories_by_parent = array();
+        $categories_by_parent = array();
 
-    foreach ($product_categories as $category) {
-        $categories_by_parent[$category->parent][] = $category;
-    }
-
-    function get_parent_category_slug_from_url() {
-        $current_url = $_SERVER['REQUEST_URI'];
-        $parts = explode('/', trim($current_url, '/'));
-        // Adjust index based on your URL structure
-        return isset($parts[1]) ? $parts[1] : '';
-    }
-
-    $parent_category_slug = get_parent_category_slug_from_url();
-
-    function render_category_list($categories, $categories_by_parent, $batch_size, &$index, $parent_category_slug) {
-        foreach ($categories as $category) {
-            $category_link = get_term_link($category);
-            if (is_wp_error($category_link)) {
-                continue;
-            }
-    
-            $category_slug = $category->slug;
-            $category_icons = array(
-                'uncategorized'           => 'ti ti-question-mark fs-5',
-                'accessories'             => 'ti ti-hanger fs-5',
-                'clothing'                => 'ti ti-hanger-2 fs-5',
-                'decor'                   => 'ti ti-question-mark fs-5',
-                'hoodies'                 => 'ti ti-clothes-rack fs-5',
-                'music'                   => 'ti ti-music fs-5',
-                'tshirts'                 => 'ti ti-shirt fs-5',
-                't-shirt'                 => 'ti ti-shirt fs-5', // Same icon as 'tshirts'
-                '1-2-1-4-zip'             => 'ti ti-zip fs-5',
-                '3-in-1'                  => 'ti ti-refresh fs-5',
-                'activewear'              => 'ti ti-run fs-5',
-                'aprons'                  => 'ti ti-chef-hat fs-5',
-                'athletic-warm-ups'       => 'ti ti-run fs-5',
-                'backpacks'               => 'ti ti-backpack fs-5',
-                'briefcases-messengers'   => 'ti ti-briefcase fs-5',
-                'camp-shirts'             => 'ti ti-shirt fs-5',
-            );
-    
-            $icon_class = isset($category_icons[$category_slug]) ? $category_icons[$category_slug] : 'ti ti-point fs-5';
-            $hidden_class = $index >= $batch_size ? 'd-none' : '';
-    
-            ?>
-            <li class="list-group-item border-0 p-0 mx-4 mb-2 category-item <?php echo $hidden_class; ?>">
-          
-                <a href="<?php echo esc_url($category_link); ?>" class="d-flex align-items-center gap-6 list-group-item-action text-dark px-3 py-6 rounded-1">
-                    <i class="<?php echo esc_attr($icon_class); ?>"></i>
-                    <?php echo esc_html($category->name); ?>
-                </a>
-                
-                <?php if (isset($categories_by_parent[$category->term_id])): ?>
-                    <ul class="list-group">
-                        <?php
-                        render_category_list($categories_by_parent[$category->term_id], $categories_by_parent, $batch_size, $index, $parent_category_slug);
-                        ?>
-                    </ul>
-                <?php endif; ?>
-            </li>
-            <?php
-            $index++;
+        foreach ($product_categories as $category) {
+            $categories_by_parent[$category->parent][] = $category;
         }
-    }
-    
 
-    $batch_size = 5;
-    $index = 0;
-    render_category_list($categories_by_parent[0], $categories_by_parent, $batch_size, $index, $parent_category_slug);
-    ?>
+        function get_parent_category_slug_from_url()
+        {
+            $current_url = $_SERVER['REQUEST_URI'];
+            $parts = explode('/', trim($current_url, '/'));
+            // Adjust index based on your URL structure
+            return isset($parts[1]) ? $parts[1] : '';
+        }
 
-    <?php if (count($product_categories) > $batch_size) : ?>
-        <a id="showMoreBtn" class="underline mx-4 my-2 text-center cursor-pointer" role="button">Show More</a>
-    <?php endif; ?>
-</ul>
+        $parent_category_slug = get_parent_category_slug_from_url();
+
+        function render_category_list($categories, $categories_by_parent, $batch_size, &$index, $parent_category_slug)
+        {
+            foreach ($categories as $category) {
+                $category_link = get_term_link($category);
+                if (is_wp_error($category_link)) {
+                    continue;
+                }
+
+                $category_slug = $category->slug;
+                $category_icons = array(
+                    'uncategorized'           => 'ti ti-question-mark fs-5',
+                    'accessories'             => 'ti ti-hanger fs-5',
+                    'clothing'                => 'ti ti-hanger-2 fs-5',
+                    'decor'                   => 'ti ti-question-mark fs-5',
+                    'hoodies'                 => 'ti ti-clothes-rack fs-5',
+                    'music'                   => 'ti ti-music fs-5',
+                    'tshirts'                 => 'ti ti-shirt fs-5',
+                    't-shirt'                 => 'ti ti-shirt fs-5', // Same icon as 'tshirts'
+                    '1-2-1-4-zip'             => 'ti ti-zip fs-5',
+                    '3-in-1'                  => 'ti ti-refresh fs-5',
+                    'activewear'              => 'ti ti-run fs-5',
+                    'aprons'                  => 'ti ti-chef-hat fs-5',
+                    'athletic-warm-ups'       => 'ti ti-run fs-5',
+                    'backpacks'               => 'ti ti-backpack fs-5',
+                    'briefcases-messengers'   => 'ti ti-briefcase fs-5',
+                    'camp-shirts'             => 'ti ti-shirt fs-5',
+                );
+
+                $icon_class = isset($category_icons[$category_slug]) ? $category_icons[$category_slug] : 'ti ti-point fs-5';
+                $hidden_class = $index >= $batch_size ? 'd-none' : '';
+
+        ?>
+                <li class="list-group-item border-0 p-0 mx-4 mb-2 category-item <?php echo $hidden_class; ?>">
+
+                    <a href="<?php echo esc_url($category_link); ?>" class="d-flex align-items-center gap-6 list-group-item-action text-dark px-3 py-6 rounded-1">
+                        <i class="<?php echo esc_attr($icon_class); ?>"></i>
+                        <?php echo esc_html($category->name); ?>
+                    </a>
+
+                    <?php if (isset($categories_by_parent[$category->term_id])): ?>
+                        <ul class="list-group">
+                            <?php
+                            render_category_list($categories_by_parent[$category->term_id], $categories_by_parent, $batch_size, $index, $parent_category_slug);
+                            ?>
+                        </ul>
+                    <?php endif; ?>
+                </li>
+        <?php
+                $index++;
+            }
+        }
+
+
+        $batch_size = 5;
+        $index = 0;
+        render_category_list($categories_by_parent[0], $categories_by_parent, $batch_size, $index, $parent_category_slug);
+        ?>
+
+        <?php if (count($product_categories) > $batch_size) : ?>
+            <a id="showMoreBtn" class="underline mx-4 my-2 text-center cursor-pointer" role="button">Show More</a>
+        <?php endif; ?>
+    </ul>
 
 
 
 
     <!-- Sort By -->
     <ul class="list-group pt-2 border-bottom rounded-0" id="sortList">
-    <h6 class="my-3 mx-4 fw-semibold" id="filterTitle">Sort By</h6>
-    <?php
-    $current_url = home_url( add_query_arg( null, null ) );
-    ?>
+        <h6 class="my-3 mx-4 fw-semibold" id="filterTitle">Sort By</h6>
+        <?php
+        $current_url = home_url(add_query_arg(null, null));
+        ?>
         <li class="list-group-item border-0 p-0 mx-4 mb-2">
-            <a href="<?php echo esc_url( add_query_arg( 'orderby', 'date', $current_url ) ); ?>" class="d-flex align-items-center gap-6 list-group-item-action text-dark px-3 py-6 rounded-1"><i class="ti ti-timeline fs-5"></i>Newest</a>
+            <a href="<?php echo esc_url(add_query_arg('orderby', 'date', $current_url)); ?>" class="d-flex align-items-center gap-6 list-group-item-action text-dark px-3 py-6 rounded-1"><i class="ti ti-timeline fs-5"></i>Newest</a>
         </li>
         <li class="list-group-item border-0 p-0 mx-4 mb-2">
-            <a href="<?php echo esc_url( add_query_arg( 'orderby', 'price', $current_url ) ); ?>" class="d-flex align-items-center gap-6 list-group-item-action text-dark px-3 py-6 rounded-1"><i class="ti ti-tag fs-5"></i>Price: Low-High</a>
+            <a href="<?php echo esc_url(add_query_arg('orderby', 'price', $current_url)); ?>" class="d-flex align-items-center gap-6 list-group-item-action text-dark px-3 py-6 rounded-1"><i class="ti ti-tag fs-5"></i>Price: Low-High</a>
         </li>
         <li class="list-group-item border-0 p-0 mx-4 mb-2">
-            <a href="<?php echo esc_url( add_query_arg( 'orderby', 'price-desc', $current_url ) ); ?>" class="d-flex align-items-center gap-6 list-group-item-action text-dark px-3 py-6 rounded-1"><i class="ti ti-tag-off fs-5"></i>Price: High-Low</a>
+            <a href="<?php echo esc_url(add_query_arg('orderby', 'price-desc', $current_url)); ?>" class="d-flex align-items-center gap-6 list-group-item-action text-dark px-3 py-6 rounded-1"><i class="ti ti-tag-off fs-5"></i>Price: High-Low</a>
         </li>
         <li class="list-group-item border-0 p-0 mx-4 mb-2">
-            <a href="<?php echo esc_url( add_query_arg( 'orderby', 'rating', $current_url ) ); ?>" class="d-flex align-items-center gap-6 list-group-item-action text-dark px-3 py-6 rounded-1"><i class="ti ti-graph fs-5"></i>Rating</a>
+            <a href="<?php echo esc_url(add_query_arg('orderby', 'rating', $current_url)); ?>" class="d-flex align-items-center gap-6 list-group-item-action text-dark px-3 py-6 rounded-1"><i class="ti ti-graph fs-5"></i>Rating</a>
         </li>
         <li class="list-group-item border-0 p-0 mx-4 mb-2">
-            <a href="<?php echo esc_url( add_query_arg( 'orderby', 'popularity', $current_url ) ); ?>" class="d-flex align-items-center gap-6 list-group-item-action text-dark px-3 py-6 rounded-1"><i class="ti ti-chart-area-line fs-5"></i>Popularity</a>
+            <a href="<?php echo esc_url(add_query_arg('orderby', 'popularity', $current_url)); ?>" class="d-flex align-items-center gap-6 list-group-item-action text-dark px-3 py-6 rounded-1"><i class="ti ti-chart-area-line fs-5"></i>Popularity</a>
         </li>
     </ul>
 
@@ -134,12 +136,14 @@
         <div style="max-width:200px;margin:auto;margin-top:30px">
             <?php echo do_shortcode('[facetwp facet="price_range"]'); ?>
         </div>
-        
+
     </div>
 
 
     <?php
-    // Define the path to your JSON file
+    // Sidebar filter for color
+
+    // JSON file
     $json_file_path = get_template_directory() . '/woocommerce/ulab_lookup_colors.json';
 
 
@@ -173,17 +177,16 @@
         <?php foreach ($parent_colors as $parent_color => $details): ?>
             <li class="list-group-item border-0 p-0 mx-4 mb-2 color-item">
                 <!-- Trigger modal to show child colors -->
-                <div class="d-flex align-items-center gap-6 list-group-item-action text-dark px-3 py-6 rounded-1" 
+                <div class="d-flex align-items-center gap-6 list-group-item-action text-dark px-3 py-6 rounded-1"
                     role="button" onclick="showModal('<?php echo esc_attr(strtolower($parent_color)); ?>')">
-                    <input 
-                        type="checkbox" 
-                        class="color-checkbox" 
+                    <input
+                        type="checkbox"
+                        class="color-checkbox"
                         name="<?php echo esc_attr(strtolower($parent_color)); ?>"
                         value="<?php echo esc_attr(strtolower($parent_color)); ?>"
-                        id="color-checkbox-<?php echo esc_attr(strtolower($parent_color)); ?>"
-                    >
+                        id="color-checkbox-<?php echo esc_attr(strtolower($parent_color)); ?>">
 
-                    <span class="color-swatch" style="background-color: <?php echo esc_attr( $parent_color); ?>;"></span>
+                    <span class="color-swatch" style="background-color: <?php echo esc_attr($parent_color); ?>;"></span>
                     <span class="color-name"><?php echo esc_html($parent_color); ?></span>
                 </div>
             </li>
@@ -192,15 +195,19 @@
             <div class="custom-modal" id="modal-<?php echo esc_attr(strtolower($parent_color)); ?>">
                 <div class="modal-content">
                     <span class="close" onclick="hideModal('<?php echo esc_attr(strtolower($parent_color)); ?>')">&times;</span>
+                    <div class="modal-header">
+                        <!-- <h5 class="modal-title">Select Colors</h5> -->
+                        <input type="checkbox" id="select-all-<?php echo esc_attr(strtolower($parent_color)); ?>" onclick="toggleAll('<?php echo esc_attr(strtolower($parent_color)); ?>')" />
+                        <label for="select-all-<?php echo esc_attr(strtolower($parent_color)); ?>">Select All</label>
+                    </div>
                     <div class="color-grid">
                         <?php foreach ($details as $child_color): ?>
                             <div class="color-item">
-                                <input 
-                                    type="checkbox" 
-                                    class="color-checkbox" 
-                                    name="filter_colors[]" 
-                                    value="<?php echo esc_attr($child_color['name']); ?>"
-                                >
+                                <input
+                                    type="checkbox"
+                                    class="color-checkbox child-checkbox"
+                                    name="filter_colors[]"
+                                    value="<?php echo esc_attr($child_color['name']); ?>">
                                 <span class="color-swatch" style="background-color: <?php echo esc_attr('#' . $child_color['hex']); ?>;"></span>
                                 <span class="color-name"><?php echo esc_html($child_color['name']); ?></span>
                             </div>
@@ -210,11 +217,11 @@
             </div>
         <?php endforeach; ?>
     </ul>
-        
 
     <div class="p-4">
-        <a href="<?php echo($shop_url); ?>" class="btn btn-primary w-100 text-white">Reset Filters</a>
+        <a href="<?php echo esc_url($shop_url); ?>" class="btn btn-primary w-100 text-white">Reset Filters</a>
     </div>
+
 
 
 </div>
@@ -225,109 +232,115 @@
 
 
 <style>
-/*
+    /*
 Modal for the color swatch
-*/ 
+*/
 
-.custom-modal {
-    display: none; 
-    position: fixed; 
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1000; 
-}
+    .custom-modal {
+        display: none;
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1000;
+    }
 
-.modal-content {
-    position: relative;
-    background-color: #fff;
-    margin: 15% auto;
-    padding: 40px;
-    border: 1px solid #888;
-    max-width: 600px; 
-}
+    .modal-content {
+        position: relative;
+        background-color: #fff;
+        margin: 15% auto;
+        padding: 40px;
+        border: 1px solid #888;
+        max-width: 600px;
+    }
 
-.close {
-    position: absolute;
-    color: #aaa;
-    right:10px;
-    top:-5px;
-    font-size: 28px;
-    font-weight: bold;
-}
+    .close {
+        position: absolute;
+        color: #aaa;
+        right: 10px;
+        top: -5px;
+        font-size: 28px;
+        font-weight: bold;
+    }
 
-.close:hover,
-.close:focus {
-    color: #000;
-    text-decoration: none;
-    cursor: pointer;
-}
+    .close:hover,
+    .close:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
 
-.color-checkbox {
-    width: 20px;
-    height: 20px;
-    margin-right: 10px;
-}
+    .color-checkbox {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+    }
 
-.color-swatch {
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    display: inline-block;
-    margin-right: 10px;
+    .color-swatch {
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: inline-block;
+        margin-right: 10px;
 
-}
+    }
 
-.color-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* Creates 3 equal-width columns */
-    gap: 1rem; /* Adds space between grid items */
-    padding: 0;
-    list-style: none;
-}
+    .color-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        /* Creates 3 equal-width columns */
+        gap: 1rem;
+        /* Adds space between grid items */
+        padding: 0;
+        list-style: none;
+    }
 
-.color-item {
-    margin: 0; /* Removes any default margin */
-}
+    .color-item {
+        margin: 0;
+        /* Removes any default margin */
+    }
 
-.color-grid a {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-decoration: none;
-}
+    .color-grid a {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
 </style>
 
 
 <script>
-/*
+    /*
 Js for color swatch
-*/ 
+*/
 
-function showModal(modalId) {
-    var modal = document.getElementById('modal-' + modalId);
-    if (modal) {
-        modal.style.display = 'block';
-    }
-}
-
-function hideModal(modalId) {
-    var modal = document.getElementById('modal-' + modalId);
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
-// Close modal when clicking outside of it
-window.onclick = function(event) {
-    var modals = document.getElementsByClassName('custom-modal');
-    for (var i = 0; i < modals.length; i++) {
-        if (event.target == modals[i]) {
-            modals[i].style.display = 'none';
+    function showModal(modalId) {
+        var modal = document.getElementById('modal-' + modalId);
+        if (modal) {
+            modal.style.display = 'block';
         }
     }
-}
+
+    function hideModal(modalId) {
+        var modal = document.getElementById('modal-' + modalId);
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // Close modal when clicking outside of it
+    window.onclick = function(event) {
+        var modals = document.getElementsByClassName('custom-modal');
+        for (var i = 0; i < modals.length; i++) {
+            if (event.target == modals[i]) {
+                modals[i].style.display = 'none';
+            }
+        }
+    }
+
+
+    
 </script>
 
 
@@ -335,180 +348,179 @@ window.onclick = function(event) {
 
 <style>
     .active {
-    background-color: var(--bs-primary); 
-    color:var(--bs-white) !important;
+        background-color: var(--bs-primary);
+        color: var(--bs-white) !important;
     }
 
     .active:hover {
-        background-color: var(--bs-primary) !important;  
-    color:var(--bs-white) !important;
+        background-color: var(--bs-primary) !important;
+        color: var(--bs-white) !important;
     }
 
     .d-flex-important {
         display: flex !important;
     }
-	
-#sidebarfilter{
-max-width:300px
-}
-   
-@media only screen and (max-width: 767px){
-    .shop-filters {
-        position: fixed;
-        padding: 16px;
-        width: 300px;
-        left: -100%;
-        z-index: 99;
-        height: 100%;
-        top: 0px;
-        background-color: white;
-        overflow-x: hidden;
-        transition: left 0.5s;
+
+    #sidebarfilter {
+        max-width: 300px
     }
 
-  
+    @media only screen and (max-width: 767px) {
+        .shop-filters {
+            position: fixed;
+            padding: 16px;
+            width: 300px;
+            left: -100%;
+            z-index: 99;
+            height: 100%;
+            top: 0px;
+            background-color: white;
+            overflow-x: hidden;
+            transition: left 0.5s;
+        }
 
 
-}
+
+
+    }
 </style>
 
 <script>
     function openSidebarFilter() {
-    document.getElementById("sidebarfilter").style.left = "0";
-    document.getElementById("overlay").classList.remove("d-none");
+        document.getElementById("sidebarfilter").style.left = "0";
+        document.getElementById("overlay").classList.remove("d-none");
 
 
-}
-
-function closeSidebarFilter() {
-    document.getElementById("sidebarfilter").style.left = "-100%";
-    document.getElementById("overlay").classList.add("d-none");
-
-}
-
-document.getElementById("overlay").addEventListener("click", function() {
-  closeSidebarFilter();
-  closeNav()
-});
-
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-
-    //Active Class on Filtering
-    function setActiveCategory() {
-        const currentUrl = new URL(window.location.href);
-        const currentPath = currentUrl.pathname;
-        console.log(currentUrl);
-        const categoryLinks = document.querySelectorAll('#categoryList .category-item a');
-        
-
-        categoryLinks.forEach(link => {
-            const linkUrl = new URL(link.href);
-            const linkPath = linkUrl.pathname;
-
-            if (linkPath === currentPath) {
-                link.classList.add('active');
-            } else {
-                link.classList.remove('active');
-            }
-        });
-        
-        moveActiveToTop('#categoryList');
     }
 
-    function setActiveSort() {
-        const currentUrl = new URL(window.location.href);
-        const currentPath = currentUrl.pathname;
-        const currentOrderby = currentUrl.searchParams.get('orderby');
-        
+    function closeSidebarFilter() {
+        document.getElementById("sidebarfilter").style.left = "-100%";
+        document.getElementById("overlay").classList.add("d-none");
 
-        const sortList = document.getElementById('sortList');
-        
-        const sortLinks = sortList.querySelectorAll('li a');
-        
-        sortLinks.forEach(link => {
-            const linkUrl = new URL(link.href);
-            const linkPath = linkUrl.pathname;
-            const linkOrderby = linkUrl.searchParams.get('orderby');
-
-
-            if (linkPath === currentPath && linkOrderby === currentOrderby) {
-                link.classList.add('active');
-            } else {
-                link.classList.remove('active');
-            }
-        });
-        moveActiveToTop('#sortList');
     }
 
-    function setActiveColorFilter() {
-        const currentUrl = new URL(window.location.href);
-        const currentColor = currentUrl.searchParams.get('filter_color');
-        
-        const colorFilterList = document.getElementById('sortColor');
-        
-        const colorFilterLinks = colorFilterList.querySelectorAll('li a');
-        
-
-        colorFilterLinks.forEach(link => {
-            const linkUrl = new URL(link.href);
-            const linkColor = linkUrl.searchParams.get('filter_color');
-
-            if (linkColor === currentColor) {
-                link.classList.add('active');
-            } else {
-                link.classList.remove('active');
-            }
-        });
-        moveActiveToTop('#sortColor');
-    }
-
-    function moveActiveToTop(listId) {
-    const list = document.querySelector(listId);
-    if (!list) return;
-
-    const header = list.querySelector('h6');
-    if (!header) return;
-
-    // Find all active items, including those in nested lists
-    const activeItems = Array.from(list.querySelectorAll('li a.active'))
-        .map(activeLink => activeLink.closest('li')); // Use closest to get the li element
-
-    // Remove active items from their original positions
-    activeItems.forEach(item => item.remove());
-
-    // Insert active items after the header
-    activeItems.forEach(item => {
-        list.insertBefore(item, header.nextElementSibling);
-        item.classList.remove('d-none'); // Ensure the item is visible
+    document.getElementById("overlay").addEventListener("click", function() {
+        closeSidebarFilter();
+        closeNav()
     });
-}
+</script>
 
 
-    setActiveSort();
-    setActiveCategory();
-    setActiveColorFilter();
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
 
-    // const listItems = document.querySelectorAll('li');
-    //     listItems.forEach(item => {
-    //         const link = item.querySelector('a');
-    //         if (link && link.classList.contains('active')) {
-    //             item.classList.add('d-flex-important');
-    //         }
-    // });
+        //Active Class on Filtering
+        function setActiveCategory() {
+            const currentUrl = new URL(window.location.href);
+            const currentPath = currentUrl.pathname;
+            console.log(currentUrl);
+            const categoryLinks = document.querySelectorAll('#categoryList .category-item a');
 
-});
+
+            categoryLinks.forEach(link => {
+                const linkUrl = new URL(link.href);
+                const linkPath = linkUrl.pathname;
+
+                if (linkPath === currentPath) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            moveActiveToTop('#categoryList');
+        }
+
+        function setActiveSort() {
+            const currentUrl = new URL(window.location.href);
+            const currentPath = currentUrl.pathname;
+            const currentOrderby = currentUrl.searchParams.get('orderby');
+
+
+            const sortList = document.getElementById('sortList');
+
+            const sortLinks = sortList.querySelectorAll('li a');
+
+            sortLinks.forEach(link => {
+                const linkUrl = new URL(link.href);
+                const linkPath = linkUrl.pathname;
+                const linkOrderby = linkUrl.searchParams.get('orderby');
+
+
+                if (linkPath === currentPath && linkOrderby === currentOrderby) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+            moveActiveToTop('#sortList');
+        }
+
+        function setActiveColorFilter() {
+            const currentUrl = new URL(window.location.href);
+            const currentColor = currentUrl.searchParams.get('filter_color');
+
+            const colorFilterList = document.getElementById('sortColor');
+
+            const colorFilterLinks = colorFilterList.querySelectorAll('li a');
+
+
+            colorFilterLinks.forEach(link => {
+                const linkUrl = new URL(link.href);
+                const linkColor = linkUrl.searchParams.get('filter_color');
+
+                if (linkColor === currentColor) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+            moveActiveToTop('#sortColor');
+        }
+
+        function moveActiveToTop(listId) {
+            const list = document.querySelector(listId);
+            if (!list) return;
+
+            const header = list.querySelector('h6');
+            if (!header) return;
+
+            // Find all active items, including those in nested lists
+            const activeItems = Array.from(list.querySelectorAll('li a.active'))
+                .map(activeLink => activeLink.closest('li')); // Use closest to get the li element
+
+            // Remove active items from their original positions
+            activeItems.forEach(item => item.remove());
+
+            // Insert active items after the header
+            activeItems.forEach(item => {
+                list.insertBefore(item, header.nextElementSibling);
+                item.classList.remove('d-none'); // Ensure the item is visible
+            });
+        }
+
+
+        setActiveSort();
+        setActiveCategory();
+        setActiveColorFilter();
+
+        // const listItems = document.querySelectorAll('li');
+        //     listItems.forEach(item => {
+        //         const link = item.querySelector('a');
+        //         if (link && link.classList.contains('active')) {
+        //             item.classList.add('d-flex-important');
+        //         }
+        // });
+
+    });
 </script>
 
 
 
 
 <script>
- // Show More Button
- const batchSize = <?php echo $batch_size; ?>;
+    // Show More Button
+    const batchSize = <?php echo $batch_size; ?>;
     let currentBatch = 1;
 
     document.getElementById('showMoreBtn').addEventListener('click', function() {
@@ -525,7 +537,4 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.display = 'none';
         }
     });
-
 </script>
-
-
