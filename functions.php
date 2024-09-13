@@ -247,40 +247,40 @@ function show_hide_product_variable_price() {
 
     if( $product->is_type('variable') ) {
         ?>
-        <script type="text/javascript">
-        jQuery(function($){
-            // Store the original price HTML in a data attribute on the price element
-            var $origPriceElement = $('.woocommerce .orig-price');
-            var originalPriceHtml = $origPriceElement.html();
-            $origPriceElement.data('original-html', originalPriceHtml);
+<script type="text/javascript">
+jQuery(function($) {
+  // Store the original price HTML in a data attribute on the price element
+  var $origPriceElement = $('.woocommerce .orig-price');
+  var originalPriceHtml = $origPriceElement.html();
+  $origPriceElement.data('original-html', originalPriceHtml);
 
-            // On selected variation event
-            $('form.variations_form').on('show_variation', function(event, variation){
-                // Get the variation price HTML and extract the specific HTML structure
-                var variationPriceHtml = variation.price_html;
-                var $variationPriceElement = $(variationPriceHtml).find('.woocommerce-Price-amount').parent();
-                $('.woocommerce .orig-price').html($variationPriceElement.html());
-                $('.woocommerce .orig-price').removeClass('orig-price').addClass('woocommerce-variation-price  fw-semibold');
-                console.log('Variation is selected | Replaced original price with variation price', $variationPriceElement.html());
-            });
+  // On selected variation event
+  $('form.variations_form').on('show_variation', function(event, variation) {
+    // Get the variation price HTML and extract the specific HTML structure
+    var variationPriceHtml = variation.price_html;
+    var $variationPriceElement = $(variationPriceHtml).find('.woocommerce-Price-amount').parent();
+    $('.woocommerce .orig-price').html($variationPriceElement.html());
+    $('.woocommerce .orig-price').removeClass('orig-price').addClass(
+      'woocommerce-variation-price  fw-semibold');
+    console.log('Variation is selected | Replaced original price with variation price', $variationPriceElement
+      .html());
+  });
 
-            // On unselected (or not selected) variation event
-            $('form.variations_form').on('hide_variation', function(){
-                // Restore the original price
-                var $priceElement = $('.woocommerce .woocommerce-variation-price');
-                if ($priceElement.length) {
-                    $priceElement.html($origPriceElement.data('original-html'));
-                    $priceElement.removeClass('woocommerce-variation-price  fw-semibold').addClass('orig-price');
-                }
-                console.log('No variation is selected | Reverted back to original price');
-            });
-        });
-        </script>
-        <?php
+  // On unselected (or not selected) variation event
+  $('form.variations_form').on('hide_variation', function() {
+    // Restore the original price
+    var $priceElement = $('.woocommerce .woocommerce-variation-price');
+    if ($priceElement.length) {
+      $priceElement.html($origPriceElement.data('original-html'));
+      $priceElement.removeClass('woocommerce-variation-price  fw-semibold').addClass('orig-price');
+    }
+    console.log('No variation is selected | Reverted back to original price');
+  });
+});
+</script>
+<?php
     }
 }
-
-
 
 
 function set_custom_default_avatar($avatar, $id_or_email, $size, $default, $alt) {
@@ -409,25 +409,72 @@ add_filter( 'facetwp_index_row', function( $params, $class ) {
 
 add_action('wp_ajax_nopriv_filter_by_brand_color', 'filter_by_brand_color');
 add_action('wp_ajax_filter_by_brand_color', 'filter_by_brand_color');
+add_action('wp_ajax_filter_by_category', 'filter_by_category');
+add_action('wp_ajax_nopriv_filter_by_category', 'filter_by_category');
 
 function filter_by_brand_color() {
-    // Sanitize and retrieve the array of colors
     $colors = isset($_POST['colors']) ? array_map('sanitize_text_field', $_POST['colors']) : array();
 
-    // Ensure colors is an array
     if (!is_array($colors)) {
         $colors = array();
     }
 
+    $paged = isset($_POST['paged']) ? intval($_POST['paged']) : 1; 
+
+    $posts_per_page = 10; 
+
+    $existing_args = array(
+        'post_type'      => 'product',
+        'posts_per_page' => $posts_per_page,
+        'post_status'    => 'publish',
+        'paged'          => $paged,
+    );
+
+    $tax_query = array(
+        'taxonomy' => 'pa_brand-color',
+        'field'    => 'slug',
+        'terms'    => $colors,
+        'operator' => 'IN',
+    );
+
+    $args = array_merge($existing_args, array(
+        'tax_query' => array($tax_query),
+    ));
+
+    $query = new WP_Query($args);
+
+    if ($query->have_posts()) {
+        while ($query->have_posts()) {
+            $query->the_post();
+            wc_get_template_part('content', 'product'); 
+        }
+
+        // Pagination
+        echo paginate_links(array(
+            'total'   => $query->max_num_pages,
+            'current' => $paged,
+        ));
+    } else {
+        echo '<p>No products found</p>';
+    }
+
+    wp_die();
+}
+
+
+function filter_by_category() {
+    $category_slug = $_POST['category_slug']; // Get the category slug from AJAX request
+
+    // Same query as before
     $args = array(
-        'post_type' => 'product',
+        'post_type'      => 'product',
         'posts_per_page' => -1,
-        'post_status' => 'publish',
-        'tax_query' => array(
+        'post_status'    => 'publish',
+        'tax_query'      => array(
             array(
-                'taxonomy' => 'pa_brand-color',
+                'taxonomy' => 'product_cat',
                 'field'    => 'slug',
-                'terms'    => $colors, // Handle multiple colors
+                'terms'    => $category_slug,
                 'operator' => 'IN',
             ),
         ),
@@ -438,22 +485,70 @@ function filter_by_brand_color() {
     if ($query->have_posts()) {
         while ($query->have_posts()) {
             $query->the_post();
-            wc_get_template_part('content', 'product'); // Template to display each product
+            wc_get_template_part('content', 'product');
         }
     } else {
         echo '<p>No products found</p>';
     }
 
-    wp_die();
+    wp_reset_postdata();
+    wp_die(); // End AJAX request
 }
 
+
 function enqueue_ajax_filter_scripts() {
-    wp_enqueue_script('ajax-filter', get_template_directory_uri() . '/js/ajax-filter.js', array('jquery'), null, true);
-    wp_localize_script('ajax-filter', 'ajax_filter_params', array(
+    // Debugging info
+    error_log('Enqueueing scripts');
+
+    // Enqueue the color filter script with versioning
+    wp_enqueue_script(
+        'ajax-colorfilter', 
+        get_template_directory_uri() . '/js/ajax-colorfilter.js', 
+        array('jquery'), 
+        filemtime(get_template_directory() . '/js/ajax-colorfilter.js'), // Versioning based on file modification time
+        true
+    );
+    wp_localize_script('ajax-colorfilter', 'ajax_filter_params', array(
         'ajax_url' => admin_url('admin-ajax.php'),
     ));
+
+    // Enqueue the category filter script with versioning
+    wp_enqueue_script(
+        'ajax-categoryfilter', 
+        get_template_directory_uri() . '/js/ajax-categoryfilter.js', 
+        array('jquery'), 
+        filemtime(get_template_directory() . '/js/ajax-categoryfilter.js'), // Versioning based on file modification time
+        true
+    );
+    wp_localize_script('ajax-categoryfilter', 'ajax_category_filter_params', array(
+        'ajax_url' => admin_url('admin-ajax.php'),
+    ));
+
+    error_log('Enqueueing swatches-singleProduct.js');
+    wp_enqueue_script(
+        'swatches-singleProduct', 
+        get_template_directory_uri() . '/js/swatches-singleProduct.js', 
+        array('jquery'), 
+        filemtime(get_template_directory() . '/js/swatches-singleProduct.js'), // Versioning based on file modification time
+        true
+    );
+
+    // Pass the color data to the swatch script
+    $json_file_path = get_template_directory() . '/woocommerce/ulab_lookup_colors.json';
+    error_log('JSON file path: ' . $json_file_path);
+    if (file_exists($json_file_path)) {
+        $json_data = file_get_contents($json_file_path);
+        wp_localize_script('swatches-singleProduct', 'colorData', array(
+            'colors' => $json_data
+        ));
+    } else {
+        error_log('JSON file not found: ' . $json_file_path);
+    }
 }
 add_action('wp_enqueue_scripts', 'enqueue_ajax_filter_scripts');
+
+
+
 
 
 function generate_ulab_lookup_colors_json() {
