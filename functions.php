@@ -282,7 +282,6 @@ jQuery(function($) {
     }
 }
 
-
 function set_custom_default_avatar($avatar, $id_or_email, $size, $default, $alt) {
     $custom_default_avatar = 'https://www.uniformslab.com/wp-content/uploads/2024/08/4935173.webp';
     
@@ -412,24 +411,24 @@ add_action('wp_ajax_filter_by_brand_color', 'filter_by_brand_color');
 add_action('wp_ajax_filter_by_category', 'filter_by_category');
 add_action('wp_ajax_nopriv_filter_by_category', 'filter_by_category');
 
+
 function filter_by_brand_color() {
+    // Sanitize and retrieve the array of colors
     $colors = isset($_POST['colors']) ? array_map('sanitize_text_field', $_POST['colors']) : array();
 
+    // Ensure colors is an array
     if (!is_array($colors)) {
         $colors = array();
     }
 
-    $paged = isset($_POST['paged']) ? intval($_POST['paged']) : 1; 
-
-    $posts_per_page = 10; 
-
+    // Get existing query arguments and add color filter
     $existing_args = array(
-        'post_type'      => 'product',
-        'posts_per_page' => $posts_per_page,
-        'post_status'    => 'publish',
-        'paged'          => $paged,
+        'post_type' => 'product',
+        'posts_per_page' => 10,
+        'post_status' => 'publish',
     );
 
+    // Add the taxonomy filter for colors
     $tax_query = array(
         'taxonomy' => 'pa_brand-color',
         'field'    => 'slug',
@@ -437,6 +436,7 @@ function filter_by_brand_color() {
         'operator' => 'IN',
     );
 
+    // Merge the existing query arguments with the new taxonomy query
     $args = array_merge($existing_args, array(
         'tax_query' => array($tax_query),
     ));
@@ -446,22 +446,14 @@ function filter_by_brand_color() {
     if ($query->have_posts()) {
         while ($query->have_posts()) {
             $query->the_post();
-            wc_get_template_part('content', 'product'); 
+            wc_get_template_part('content', 'product'); // Template to display each product
         }
-
-        // Pagination
-        echo paginate_links(array(
-            'total'   => $query->max_num_pages,
-            'current' => $paged,
-        ));
     } else {
         echo '<p>No products found</p>';
     }
 
     wp_die();
 }
-
-
 function filter_by_category() {
     $category_slug = $_POST['category_slug']; // Get the category slug from AJAX request
 
