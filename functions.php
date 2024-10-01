@@ -14,7 +14,7 @@ if ( ! function_exists( 'wordpress_bootstrap_starter_theme_setup' ) ) :
 	 *
 	 * Note that this function is hooked into the after_setup_theme hook, which
 	 * runs before the init hook. The init hook is too late for some features, such
-	 * as indicating support for post thumbnails.
+	 * as indicating support for post thumbnails..
 	 */
 	function wordpress_bootstrap_starter_theme_setup() {
 		/*
